@@ -17,16 +17,5 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "You are Island RV Rentals’ troubleshooting assistant. Help customers quickly solve RV rental issues (trailers, motorhomes, campervans). Confirm which unit they are in, gather details, provide step-by-step troubleshooting, and prioritize safety."
-          },
-          { role: "user", content: message }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    res.status(200).json({ reply: data.choices[0].message.content });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch response from OpenAI" });
-  }
-}
+            content:
+              "You are Island RV Rentals’ troubleshooting assistant. Help customers quickly solve RV rental issues (trailers, motorhomes, campervans). Confirm which unit they are in, gather details, provide step-by-step troubleshooting, and prioritize safe

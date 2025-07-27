@@ -18,4 +18,30 @@ export default async function handler(req, res) {
           {
             role: "system",
             content:
-              "You are Island RV Rentals’ troubleshooting assistant. Help customers quickly solve RV rental issues (trailers, motorhomes, campervans). Confirm which unit they are in, gather details, provide step-by-step troubleshooting, and prioritize safe
+              "You are Island RV Rentals’ troubleshooting assistant. Help customers quickly solve RV rental issues (trailers, motorhomes, campervans). Confirm which unit they are in, gather details, provide step-by-step troubleshooting, and prioritize safety."
+          },
+          { role: "user", content: message }
+        ]
+      })
+    });
+
+    const data = await response.json();
+
+    // Debug: log full response for troubleshooting
+    console.log("OpenAI API response:", JSON.stringify(data, null, 2));
+
+    // Check if choices exist
+    if (!data.choices || !data.choices[0]?.message?.content) {
+      return res.status(500).json({
+        error: data.error?.message || "No reply received from OpenAI API"
+      });
+    }
+
+    res.status(200).json({ reply: data.choices[0].message.content });
+  } catch (error) {
+    console.error("OpenAI API Error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to fetch response from OpenAI"
+    });
+  }
+}

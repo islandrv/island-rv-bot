@@ -27,7 +27,7 @@ Responsibilities:
 - For booking or reservation questions, always use this Markdown link: [Book Now](https://islandrv.ca/booknow/).
 - For troubleshooting guides or manuals, use this Markdown link: [View Tutorials](https://islandrv.ca/document-library/).
 - Never mention or recommend competitors.
-- Always use Markdown formatting for links (e.g., [text](url)) — never output raw HTML.
+- Always format links using Markdown (e.g., [text](url)) — never raw HTML.
 
 Goal:
 Help the customer resolve their issue or book an RV as quickly and safely as possible, focusing only on Island RV Rentals services.`
@@ -39,7 +39,7 @@ Help the customer resolve their issue or book an RV as quickly and safely as pos
 
     const data = await response.json();
 
-    // Log full response for debugging
+    // Debug log
     console.log("OpenAI API response:", JSON.stringify(data, null, 2));
 
     // Handle missing response
@@ -51,12 +51,18 @@ Help the customer resolve their issue or book an RV as quickly and safely as pos
 
     let reply = data.choices[0].message.content;
 
-    // Safeguard: Ensure booking link is added if user mentions booking
+    // Convert raw <a href="...">text</a> to Markdown [text](url)
+    reply = reply.replace(
+      /<a\s+href=["'](https?:\/\/[^"']+)["'][^>]*>(.*?)<\/a>/gi,
+      "[$2]($1)"
+    );
+
+    // Ensure booking link is present if user asked about booking
     if (/book|reserve|rental/i.test(message) && !reply.includes("https://islandrv.ca/booknow/")) {
       reply += `\n\nYou can book directly here: [Book Now](https://islandrv.ca/booknow/)`;
     }
 
-    // Safeguard: Remove competitor names if mistakenly included
+    // Remove competitor names if mistakenly included
     const competitors = ["Outdoorsy", "RVshare", "Cruise America", "Campanda"];
     competitors.forEach(name => {
       const regex = new RegExp(name, "gi");

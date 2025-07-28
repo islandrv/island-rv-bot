@@ -5,17 +5,27 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Convert URLs to clickable links
+  // Convert Markdown links and plain URLs to clickable links
   const formatMessage = (message) => {
-    return message.replace(
+    // Convert [text](url) Markdown links
+    let formatted = message.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+
+    // Convert plain URLs
+    formatted = formatted.replace(
       /(https?:\/\/[^\s]+)/g,
       '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
     );
+
+    return formatted;
   };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
 
+    // Add user message to history
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
@@ -88,7 +98,7 @@ export default function Home() {
       {/* Scoped link styles */}
       <style jsx>{`
         a {
-          color: inherit; /* Match bubble text color */
+          color: inherit;
           text-decoration: underline;
           cursor: pointer;
           word-break: break-word;

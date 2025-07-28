@@ -5,8 +5,13 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Convert Markdown links and plain URLs to clickable links
+  // Convert Markdown links and plain URLs to clickable links, avoid double processing
   const formatMessage = (message) => {
+    // If the message already contains an <a> tag, don't reprocess
+    if (message.includes("<a")) {
+      return message;
+    }
+
     // Convert [text](url) Markdown links
     let formatted = message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,

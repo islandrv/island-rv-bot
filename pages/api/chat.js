@@ -53,4 +53,21 @@ Help the customer resolve their issue or book an RV as quickly and safely as pos
 
     // Safeguard: Ensure booking link is added if user mentions booking
     if (/book|reserve|rental/i.test(message) && !reply.includes("https://islandrv.ca/booknow/")) {
-      reply
+      reply += `\n\nYou can book directly here: [Book Now](https://islandrv.ca/booknow/)`;
+    }
+
+    // Safeguard: Remove competitor names if mistakenly included
+    const competitors = ["Outdoorsy", "RVshare", "Cruise America", "Campanda"];
+    competitors.forEach(name => {
+      const regex = new RegExp(name, "gi");
+      reply = reply.replace(regex, "Island RV Rentals");
+    });
+
+    res.status(200).json({ reply });
+  } catch (error) {
+    console.error("OpenAI API Error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to fetch response from OpenAI"
+    });
+  }
+}

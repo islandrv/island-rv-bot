@@ -8,7 +8,7 @@ export default function Home() {
   // Convert Markdown links and plain URLs to clickable links, avoid double processing
  const formatMessage = (message) => {
   // If the message already has an <a> tag, return as-is
-  if (/<a\s+href=/.test(message)) {
+if (/<a\s+href=/.test(message)) {
     return message;
   }
 

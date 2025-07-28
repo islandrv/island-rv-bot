@@ -16,8 +16,8 @@ export default async function handler(req, res) {
         model: "gpt-4o-mini",
         messages: [
           {
-  role: "system",
-  content: `You are the official help desk assistant for Island RV Rentals.
+            role: "system",
+            content: `You are the official help desk assistant for Island RV Rentals.
 
 Responsibilities:
 - Provide troubleshooting for Island RV rental units (trailers, motorhomes, campervans).
@@ -44,7 +44,9 @@ Tone:
 
 Goal:
 - Resolve the issue safely or direct to correct next step, ensuring customers can book or troubleshoot easily.`
-}
+          },
+          { role: "user", content: message }
+        ]
       })
     });
 

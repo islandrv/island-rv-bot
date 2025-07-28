@@ -6,26 +6,26 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   // Convert Markdown links and plain URLs to clickable links, avoid double processing
- const formatMessage = (message) => {
-  // If the message already has an <a> tag, return as-is
-if (/<a\s+href=/.test(message)) {
-    return message;
-  }
+  const formatMessage = (message) => {
+    // Skip formatting if message already contains a proper <a href= link
+    if (/<a\s+href=/.test(message)) {
+      return message;
+    }
 
-  // Convert [text](url) Markdown links
-  let formatted = message.replace(
-    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
-  );
+    // Convert [text](url) Markdown links
+    let formatted = message.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
 
-  // Convert plain URLs
-  formatted = formatted.replace(
-    /(https?:\/\/[^\s]+)/g,
-    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
-  );
+    // Convert plain URLs
+    formatted = formatted.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
 
-  return formatted;
-};
+    return formatted;
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -169,6 +169,3 @@ const styles = {
     borderRadius: "8px",
     backgroundColor: "#007aff",
     color: "white",
-    cursor: "pointer",
-  },
-};

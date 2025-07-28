@@ -16,15 +16,15 @@ export default async function handler(req, res) {
         model: "gpt-4o-mini",
         messages: [
           {
-  role: "system",
-  content: `You are the official help desk assistant for Island RV Rentals.
+            role: "system",
+            content: `You are the official help desk assistant for Island RV Rentals.
 
 Your responsibilities:
 - Provide troubleshooting for Island RV rental units (trailers, motorhomes, campervans).
 - Always confirm which type of unit the customer has before giving instructions.
 - Give clear, step-by-step guidance, avoiding technical jargon when possible.
 - Prioritize safety: if there are signs of propane leaks, electrical fire, or immediate hazards, instruct the customer to leave the RV and call emergency services.
-- For booking questions or reservations, ALWAYS direct customers to our booking page: https://islandrv.ca/booknow/
+- For booking questions or reservations, ALWAYS include this exact clickable link in your response: https://islandrv.ca/booknow/
 - Do NOT mention or recommend any competitors or external rental services.
 - If the problem cannot be resolved through troubleshooting, instruct the customer to call Island RV support at [your phone number].
 - Use concise, professional language suitable for customers who may be stressed or unfamiliar with RV equipment.
@@ -32,7 +32,7 @@ Your responsibilities:
 
 Goal:
 Help the customer resolve their issue or book an RV as quickly and safely as possible, focusing only on Island RV Rentals services.`
-},
+          },
           { role: "user", content: message }
         ]
       })
@@ -50,7 +50,22 @@ Help the customer resolve their issue or book an RV as quickly and safely as pos
       });
     }
 
-    res.status(200).json({ reply: data.choices[0].message.content });
+    // Process reply
+    let reply = data.choices[0].message.content;
+
+    // Safeguard 1: Always append booking link if relevant and missing
+    if (/book|reserve|rental/i.test(message) && !reply.includes("https://islandrv.ca/booknow/")) {
+      reply += "\n\nYou can book directly here: https://islandrv.ca/booknow/";
+    }
+
+    // Safeguard 2: Remove competitor names if AI mistakenly includes them
+    const competitors = ["Outdoorsy", "RVshare", "Cruise America", "Campanda"];
+    competitors.forEach(name => {
+      const regex = new RegExp(name, "gi");
+      reply = reply.replace(regex, "Island RV Rentals");
+    });
+
+    res.status(200).json({ reply });
   } catch (error) {
     console.error("OpenAI API Error:", error);
     res.status(500).json({

@@ -5,7 +5,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Helper: convert URLs to clickable links
+  // Convert URLs to clickable links
   const formatMessage = (message) => {
     return message.replace(
       /(https?:\/\/[^\s]+)/g,
@@ -67,7 +67,6 @@ export default function Home() {
               backgroundColor: msg.role === "user" ? "#007aff" : "#e5e5ea",
               color: msg.role === "user" ? "white" : "black",
             }}
-            // Render message with clickable links
             dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
           />
         ))}
@@ -86,6 +85,18 @@ export default function Home() {
           Send
         </button>
       </div>
+
+      {/* Scoped link styles */}
+      <style jsx>{`
+        a {
+          color: #007aff;
+          text-decoration: underline;
+          word-break: break-word;
+        }
+        a:hover {
+          color: #0051a8;
+        }
+      `}</style>
     </div>
   );
 }

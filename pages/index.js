@@ -16,7 +16,6 @@ export default function Home() {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // Add user message to history
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
@@ -89,12 +88,13 @@ export default function Home() {
       {/* Scoped link styles */}
       <style jsx>{`
         a {
-          color: #007aff;
+          color: inherit; /* Match bubble text color */
           text-decoration: underline;
+          cursor: pointer;
           word-break: break-word;
         }
         a:hover {
-          color: #0051a8;
+          opacity: 0.8;
         }
       `}</style>
     </div>

@@ -5,6 +5,14 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Helper: convert URLs to clickable links
+  const formatMessage = (message) => {
+    return message.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -59,9 +67,9 @@ export default function Home() {
               backgroundColor: msg.role === "user" ? "#007aff" : "#e5e5ea",
               color: msg.role === "user" ? "white" : "black",
             }}
-          >
-            {msg.content}
-          </div>
+            // Render message with clickable links
+            dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
+          />
         ))}
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
       </div>
@@ -138,4 +146,3 @@ const styles = {
     cursor: "pointer",
   },
 };
-

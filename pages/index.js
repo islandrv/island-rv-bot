@@ -1,25 +1,28 @@
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Predefined quick replies
-  const quickReplies = [
-    { label: "Book an RV", text: "I want to book an RV" },
-    { label: "Fridge Help", text: "help with fridge" },
-    { label: "AC Help", text: "help with AC" },
-    { label: "Stove Help", text: "help with stove" },
-    { label: "Policies", text: "tell me about rental policies" },
-  ];
+  // Convert Markdown and plain URLs to clickable links
+  const formatMessage = (message) => {
+    if (message.includes("<a")) return message; // Prevent re-processing
+    let formatted = message.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+    formatted = formatted.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+    return formatted;
+  };
 
-  const sendMessage = async (text = null) => {
-    const messageText = text || input;
-    if (!messageText.trim()) return;
+  const sendMessage = async (text) => {
+    if (!text.trim()) return;
 
-    const newMessages = [...messages, { role: "user", content: messageText }];
+    const newMessages = [...messages, { role: "user", content: text }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -27,22 +30,15 @@ export default function Home() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: messageText }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
       });
 
       const data = await response.json();
-
-      let replyContent = data.reply || "Error: No reply received";
-
-      // If reply includes escalation instruction, add button
-      if (replyContent.includes("contact support")) {
-        replyContent += `\n\n[Contact Support](https://form.jotform.com/251108655575057)`;
-      }
-
-      setMessages([...newMessages, { role: "assistant", content: replyContent }]);
+      setMessages([
+        ...newMessages,
+        { role: "assistant", content: data.reply || "Error: No reply received" },
+      ]);
     } catch (error) {
       setMessages([
         ...newMessages,
@@ -56,23 +52,65 @@ export default function Home() {
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      sendMessage(input);
     }
   };
+
+  // Quick reply handlers
+  const quickReplies = [
+    { label: "Book an RV", text: "I want to book an RV" },
+    { label: "Fridge Help", text: "I need help with my fridge" },
+    { label: "AC Help", text: "I need help with my AC" },
+    { label: "Stove Help", text: "I need help with my stove" },
+    { label: "Policies", text: "What are your policies?" },
+  ];
+
+  // Educational general info content
+  const generalInfo = {
+    fridge:
+      "**Fridge Tips**:\n- Fridges take longer to cool in hot weather.\n- Pre-chill items before loading.\n- Avoid frequent door opening to maintain temperature.\n- Allow airflow around vents for best performance.",
+    ac:
+      "**AC Tips**:\n- AC units require 30-amp power; weak power may cause poor cooling.\n- Clean air filters improve efficiency.\n- In extreme heat, assist cooling by closing blinds and using fans.",
+    stove:
+      "**Stove Tips**:\n- Ensure propane is on and check igniter spark.\n- Avoid cooking with doors/windows closed to prevent buildup.\n- Clean burners regularly for even flame.",
+  };
+
+  // Append buttons dynamically for General Info & Troubleshoot
+  const renderContextButtons = (appliance) => (
+    <div style={styles.contextButtonRow}>
+      <button
+        style={styles.contextButton}
+        onClick={() =>
+          setMessages([
+            ...messages,
+            { role: "assistant", content: generalInfo[appliance] },
+          ])
+        }
+      >
+        General Info
+      </button>
+      <button
+        style={styles.contextButton}
+        onClick={() => sendMessage(`Troubleshoot my ${appliance}`)}
+      >
+        Troubleshoot
+      </button>
+    </div>
+  );
 
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Island RV Help Desk</h1>
 
       {/* Quick Reply Buttons */}
-      <div style={styles.quickReplyContainer}>
-        {quickReplies.map((reply, idx) => (
+      <div style={styles.quickReplies}>
+        {quickReplies.map((btn, index) => (
           <button
-            key={idx}
+            key={index}
             style={styles.quickReplyButton}
-            onClick={() => sendMessage(reply.text)}
+            onClick={() => sendMessage(btn.text)}
           >
-            {reply.label}
+            {btn.label}
           </button>
         ))}
       </div>
@@ -88,21 +126,25 @@ export default function Home() {
               backgroundColor: msg.role === "user" ? "#007aff" : "#e5e5ea",
               color: msg.role === "user" ? "white" : "black",
             }}
-          >
-            <ReactMarkdown
-              className="markdown"
-              components={{
-                a: ({ href, children }) => (
-                  <a href={href} target="_blank" rel="noopener noreferrer" style={styles.link}>
-                    {children}
-                  </a>
-                ),
-              }}
-            >
-              {msg.content}
-            </ReactMarkdown>
-          </div>
+            dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
+          />
         ))}
+
+        {/* Contextual buttons (after appliance help selection) */}
+        {messages.length > 0 &&
+          ["fridge", "AC", "stove"].some((a) =>
+            messages[messages.length - 1].content
+              .toLowerCase()
+              .includes(a.toLowerCase())
+          ) &&
+          renderContextButtons(
+            ["fridge", "AC", "stove"].find((a) =>
+              messages[messages.length - 1].content
+                .toLowerCase()
+                .includes(a.toLowerCase())
+            )
+          )}
+
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
       </div>
 
@@ -115,31 +157,27 @@ export default function Home() {
           onKeyDown={handleKeyPress}
           placeholder="Type your question…"
         />
-        <button style={styles.button} onClick={() => sendMessage()}>
+        <button style={styles.button} onClick={() => sendMessage(input)}>
           Send
         </button>
       </div>
 
-      {/* Scoped markdown styles */}
+      {/* Link styles */}
       <style jsx>{`
-        .markdown {
-          line-height: 1.4;
+        a {
+          color: inherit;
+          text-decoration: underline;
+          cursor: pointer;
         }
-        .markdown ol {
-          margin: 0 0 0 20px;
-          padding: 0;
-        }
-        .markdown li {
-          margin-bottom: 6px;
-        }
-        .markdown p {
-          margin: 0;
+        a:hover {
+          opacity: 0.8;
         }
       `}</style>
     </div>
   );
 }
 
+// Styles
 const styles = {
   container: {
     maxWidth: "600px",
@@ -152,21 +190,21 @@ const styles = {
   },
   header: {
     textAlign: "center",
-    marginBottom: "20px",
+    marginBottom: "10px",
   },
-  quickReplyContainer: {
+  quickReplies: {
     display: "flex",
     gap: "10px",
-    marginBottom: "15px",
-    flexWrap: "wrap",
     justifyContent: "center",
+    marginBottom: "10px",
+    flexWrap: "wrap",
   },
   quickReplyButton: {
+    padding: "8px 12px",
     backgroundColor: "#007aff",
     color: "white",
     border: "none",
     borderRadius: "6px",
-    padding: "6px 12px",
     cursor: "pointer",
     fontSize: "14px",
   },
@@ -175,17 +213,18 @@ const styles = {
     overflowY: "auto",
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    gap: "8px",
     padding: "10px",
     border: "1px solid #ccc",
     borderRadius: "8px",
     marginBottom: "10px",
+    backgroundColor: "#f9f9f9",
   },
   message: {
     padding: "10px",
     borderRadius: "10px",
-    maxWidth: "80%",
-    wordWrap: "break-word",
+    maxWidth: "85%",
+    whiteSpace: "pre-line",
   },
   loading: {
     fontStyle: "italic",
@@ -211,9 +250,18 @@ const styles = {
     color: "white",
     cursor: "pointer",
   },
-  link: {
-    color: "#007aff",
-    textDecoration: "underline",
-    fontWeight: "500",
+  contextButtonRow: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "5px",
+    marginBottom: "5px",
+  },
+  contextButton: {
+    padding: "6px 10px",
+    backgroundColor: "#e5e5ea",
+    borderRadius: "6px",
+    cursor: "pointer",
+    border: "1px solid #ccc",
+    fontSize: "12px",
   },
 };

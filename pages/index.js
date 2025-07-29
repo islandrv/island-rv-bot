@@ -4,8 +4,8 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(true);
 
-  // Add welcome message on load
   useEffect(() => {
     setMessages([
       {
@@ -16,7 +16,6 @@ export default function Home() {
     ]);
   }, []);
 
-  // Convert Markdown to clickable links
   const formatMessage = (message) => {
     if (message.includes("<a")) return message;
 
@@ -26,13 +25,15 @@ export default function Home() {
     );
   };
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+  const sendMessage = async (customMessage) => {
+    const messageToSend = customMessage || input;
+    if (!messageToSend.trim()) return;
 
-    const newMessages = [...messages, { role: "user", content: input }];
+    const newMessages = [...messages, { role: "user", content: messageToSend }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
+    setShowQuickReplies(false);
 
     try {
       const response = await fetch("/api/chat", {
@@ -40,7 +41,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: messageToSend }),
       });
 
       const data = await response.json();
@@ -57,6 +58,10 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleQuickReply = (option) => {
+    sendMessage(option);
   };
 
   const handleKeyPress = (e) => {
@@ -84,6 +89,21 @@ export default function Home() {
           />
         ))}
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
+
+        {/* Quick reply buttons */}
+        {showQuickReplies && (
+          <div style={styles.quickReplies}>
+            <button style={styles.quickButton} onClick={() => handleQuickReply("Appliance Troubleshooting")}>
+              Appliance
+            </button>
+            <button style={styles.quickButton} onClick={() => handleQuickReply("Booking Help")}>
+              Booking
+            </button>
+            <button style={styles.quickButton} onClick={() => handleQuickReply("Company Info & Policies")}>
+              Policies
+            </button>
+          </div>
+        )}
       </div>
 
       <div style={styles.inputContainer}>
@@ -94,7 +114,7 @@ export default function Home() {
           onKeyDown={handleKeyPress}
           placeholder="Type your question…"
         />
-        <button style={styles.button} onClick={sendMessage}>
+        <button style={styles.button} onClick={() => sendMessage()}>
           Send
         </button>
       </div>
@@ -147,6 +167,20 @@ const styles = {
   loading: {
     fontStyle: "italic",
     color: "#666",
+  },
+  quickReplies: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "10px",
+  },
+  quickButton: {
+    padding: "8px 16px",
+    border: "1px solid #007aff",
+    borderRadius: "8px",
+    backgroundColor: "white",
+    color: "#007aff",
+    cursor: "pointer",
+    fontSize: "14px",
   },
   inputContainer: {
     display: "flex",

@@ -4,21 +4,17 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unitType, setUnitType] = useState(null); // NEW: track confirmed unit
 
-  // Convert Markdown links and plain URLs to clickable links, avoid double processing
+  // Format Markdown links to clickable
   const formatMessage = (message) => {
-    // Skip formatting if message already contains a proper <a href= link
-    if (/<a\s+href=/.test(message)) {
-      return message;
-    }
+    if (message.includes("<a")) return message; // Skip if already formatted
 
-    // Convert [text](url) Markdown links
     let formatted = message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
     );
 
-    // Convert plain URLs
     formatted = formatted.replace(
       /(https?:\/\/[^\s]+)/g,
       '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
@@ -30,7 +26,7 @@ export default function Home() {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // Add user message to history
+    // Add user message
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
@@ -39,22 +35,23 @@ export default function Home() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: input }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input, unitType }), // pass unitType
       });
 
       const data = await response.json();
+
+      // Detect unit type from assistant response if mentioned
+      if (/motorhome|trailer|campervan/i.test(input)) {
+        setUnitType(input.toLowerCase());
+      }
+
       setMessages([
         ...newMessages,
         { role: "assistant", content: data.reply || "Error: No reply received" },
       ]);
     } catch (error) {
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: "Error contacting server" },
-      ]);
+      setMessages([...newMessages, { role: "assistant", content: "Error contacting server" }]);
     } finally {
       setLoading(false);
     }
@@ -100,7 +97,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Scoped link styles */}
       <style jsx>{`
         a {
           color: inherit;

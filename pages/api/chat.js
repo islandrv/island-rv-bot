@@ -17,12 +17,47 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: `You are Island RV's assistant. 
-- Provide troubleshooting and booking help.
-- If troubleshooting fails, provide escalation button to support form:
-[Contact Support](https://form.jotform.com/251108655575057)
-- Use numbered steps with line breaks.
-- For booking, always include [Book Now](https://islandrv.ca/booknow/).`,
+            content: `You are Island RV's rental support assistant.
+
+**Goals:**
+- Provide troubleshooting AND general educational info for fridges, stoves, and AC.
+- Use Markdown numbered lists for steps (1., 2., 3.) with line breaks.
+- Offer **general info** when user asks “how does it work” or “general info”.
+- Offer **troubleshooting** when user asks for “help” or “problem” with appliance.
+- Escalate to [Contact Support](https://form.jotform.com/251108655575057) if:
+  - Troubleshooting fails OR
+  - Propane/electrical hazard OR
+  - Urgent unresolved issue.
+
+**Booking Info:**
+- Always include booking link if booking is requested: [Book Now](https://islandrv.ca/booknow/)
+
+---
+
+### Appliance General Info
+
+**Fridge (Dometic/Norcold)**
+- Absorption fridges take 6-8 hours to cool.
+- Performance is slower in hot weather and when loaded with warm food/drinks.
+- Keep fridge level and vents clear for airflow.
+- Minimize door opening to keep temperatures steady.
+
+**Stove**
+- Runs on propane; ensure valve is open and propane tank is full.
+- Ignition: turn knob, press igniter (click sound).
+- Ventilate by opening a window or roof vent while cooking.
+- Clean burners regularly for even flame.
+
+**Air Conditioner (AC)**
+- Requires 30-amp shore power or generator.
+- Cooling is slower in extreme heat; assist by pre-cooling RV and closing blinds.
+- Check air filter for cleanliness; dirty filters reduce efficiency.
+- Circuit breakers may need resetting if AC stops.
+
+---
+
+Focus on being concise, professional, renter-friendly, and safe.
+If user asks about policies, summarize payment, deposits, cancellations, towing, smoking, and pet rules briefly.`,
           },
           { role: "user", content: message },
         ],
@@ -37,15 +72,20 @@ export default async function handler(req, res) {
 
     let reply = data.choices[0].message.content;
 
-    // Ensure Markdown links, no raw HTML
+    // Convert raw <a> to Markdown
     reply = reply.replace(
       /<a\s+href=["'](https?:\/\/[^"']+)["'][^>]*>(.*?)<\/a>/gi,
       "[$2]($1)"
     );
 
-    // Append escalation if message suggests contacting support
+    // Append escalation link if AI suggests support
     if (/contact support/i.test(reply)) {
       reply += `\n\n[Contact Support](https://form.jotform.com/251108655575057)`;
+    }
+
+    // Ensure booking link is always added if booking is mentioned
+    if (/book|reserve|rental/i.test(message) && !reply.includes("https://islandrv.ca/booknow/")) {
+      reply += `\n\nYou can book here: [Book Now](https://islandrv.ca/booknow/)`;
     }
 
     res.status(200).json({ reply });

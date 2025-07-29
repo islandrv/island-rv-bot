@@ -34,10 +34,15 @@ export default function Home() {
       });
 
       const data = await response.json();
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: data.reply || "Error: No reply received" },
-      ]);
+
+      let replyContent = data.reply || "Error: No reply received";
+
+      // If reply includes escalation instruction, add button
+      if (replyContent.includes("contact support")) {
+        replyContent += `\n\n[Contact Support](https://form.jotform.com/251108655575057)`;
+      }
+
+      setMessages([...newMessages, { role: "assistant", content: replyContent }]);
     } catch (error) {
       setMessages([
         ...newMessages,
@@ -84,7 +89,18 @@ export default function Home() {
               color: msg.role === "user" ? "white" : "black",
             }}
           >
-            <ReactMarkdown className="markdown">{msg.content}</ReactMarkdown>
+            <ReactMarkdown
+              className="markdown"
+              components={{
+                a: ({ href, children }) => (
+                  <a href={href} target="_blank" rel="noopener noreferrer" style={styles.link}>
+                    {children}
+                  </a>
+                ),
+              }}
+            >
+              {msg.content}
+            </ReactMarkdown>
           </div>
         ))}
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
@@ -114,7 +130,7 @@ export default function Home() {
           padding: 0;
         }
         .markdown li {
-          margin-bottom: 4px;
+          margin-bottom: 6px;
         }
         .markdown p {
           margin: 0;
@@ -194,5 +210,10 @@ const styles = {
     backgroundColor: "#007aff",
     color: "white",
     cursor: "pointer",
+  },
+  link: {
+    color: "#007aff",
+    textDecoration: "underline",
+    fontWeight: "500",
   },
 };

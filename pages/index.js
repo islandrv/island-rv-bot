@@ -5,266 +5,208 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Format incoming messages (Markdown links, spacing)
   const formatMessage = (message) => {
-    if (message.includes("<a")) return message;
+    if (/<a\s+href=/.test(message)) return message;
+
+    // Convert Markdown [text](url) to clickable link
     let formatted = message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
     );
-    formatted = formatted.replace(
-      /(https?:\/\/[^\s]+)/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
-    );
+
+    // Add line breaks for numbered lists
+    formatted = formatted.replace(/\d\.\s/g, "<br>$&");
+
     return formatted;
   };
 
-  const sendMessage = async (text) => {
-    if (!text.trim()) return;
+  // Handle send
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
-    const newMessages = [...messages, { role: "user", content: text }];
-    setMessages(newMessages);
+    const newMessage = { role: "user", content: input };
+    setMessages((prev) => [...prev, newMessage]);
     setInput("");
     setLoading(true);
 
     try {
-      const response = await fetch("/api/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: input }),
       });
 
-      const data = await response.json();
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: data.reply || "Error: No reply received" },
-      ]);
-    } catch (error) {
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: "Error contacting server" },
+      const data = await res.json();
+      if (data.reply) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: formatMessage(data.reply) },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Error: No reply from server." },
+        ]);
+      }
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Error: Unable to connect to server." },
       ]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle Enter key
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage(input);
+      sendMessage();
     }
   };
 
+  // Quick reply buttons
   const quickReplies = [
-    { label: "Book an RV", text: "I want to book an RV" },
-    { label: "Fridge Help", text: "I need help with my fridge" },
-    { label: "AC Help", text: "I need help with my AC" },
-    { label: "Stove Help", text: "I need help with my stove" },
-    { label: "Policies", text: "What are your policies?" },
+    { label: "Book an RV", text: "book an rv" },
+    { label: "Fridge Help", text: "help with fridge" },
+    { label: "AC Help", text: "help with ac" },
+    { label: "Stove Help", text: "help with stove" },
+    { label: "Policies", text: "policies" },
   ];
 
-  const generalInfo = {
-    fridge:
-      "**Fridge Tips**:\n- Fridges take 6–8 hours to cool after startup.\n- Performance is slower in hot weather and with warm contents.\n- Keep fridge level and vents clear.\n- Minimize door openings for steady cooling.",
-    ac:
-      "**AC Tips**:\n- Requires 30-amp power; weak power reduces cooling.\n- Close blinds and pre-cool RV during extreme heat.\n- Clean filters for better airflow.\n- Reset breakers if AC stops unexpectedly.",
-    stove:
-      "**Stove Tips**:\n- Runs on propane; check tank and valve are open.\n- Turn knob and press igniter (listen for click).\n- Ventilate while cooking.\n- Clean burners for even flame.",
+  const handleQuickReply = (text) => {
+    setInput(text);
+    sendMessage(text);
   };
 
-  const renderContextButtons = (appliance) => (
-    <div style={styles.contextButtonRow}>
-      <button
-        style={styles.contextButton}
-        onClick={() =>
-          setMessages([
-            ...messages,
-            { role: "assistant", content: generalInfo[appliance] },
-          ])
-        }
-      >
-        General Info
-      </button>
-      <button
-        style={styles.contextButton}
-        onClick={() => sendMessage(`Troubleshoot my ${appliance}`)}
-      >
-        Troubleshoot
-      </button>
-    </div>
-  );
-
   return (
-    <div style={styles.container}>
-      {/* LOGO */}
-      <img src="/logo.png" alt="Island RV Rentals Logo" style={styles.logo} />
-
-      <h1 style={styles.header}>Island RV Help Desk</h1>
-
-      {/* Quick Reply Buttons */}
-      <div style={styles.quickReplies}>
-        {quickReplies.map((btn, index) => (
-          <button
-            key={index}
-            style={styles.quickReplyButton}
-            onClick={() => sendMessage(btn.text)}
-          >
-            {btn.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Chat Messages */}
-      <div style={styles.chatBox}>
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            style={{
-              ...styles.message,
-              alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
-              backgroundColor: msg.role === "user" ? "#007aff" : "#e5e5ea",
-              color: msg.role === "user" ? "white" : "black",
-            }}
-            dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        minHeight: "100vh",
+        backgroundColor: "#f9f9f9",
+        padding: "20px",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "600px" }}>
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: "10px" }}>
+          <img
+            src="/Island RV Logo.png"
+            alt="Island RV Rentals Logo"
+            style={{ height: "60px", marginBottom: "10px" }}
           />
-        ))}
+        </div>
 
-        {/* Contextual General Info / Troubleshoot buttons */}
-        {messages.length > 0 &&
-          ["fridge", "AC", "stove"].some((a) =>
-            messages[messages.length - 1].content
-              .toLowerCase()
-              .includes(a.toLowerCase())
-          ) &&
-          renderContextButtons(
-            ["fridge", "AC", "stove"].find((a) =>
-              messages[messages.length - 1].content
-                .toLowerCase()
-                .includes(a.toLowerCase())
-            )
+        {/* Heading */}
+        <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
+          Island RV Help Desk
+        </h1>
+
+        {/* Quick Reply Buttons */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: "10px",
+            marginBottom: "15px",
+          }}
+        >
+          {quickReplies.map((button, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleQuickReply(button.text)}
+              style={{
+                padding: "8px 14px",
+                border: "none",
+                borderRadius: "8px",
+                backgroundColor: "#007bff",
+                color: "#fff",
+                cursor: "pointer",
+                fontSize: "14px",
+              }}
+            >
+              {button.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Chat Window */}
+        <div
+          style={{
+            border: "1px solid #ccc",
+            borderRadius: "10px",
+            padding: "10px",
+            backgroundColor: "#fff",
+            height: "400px",
+            overflowY: "auto",
+            marginBottom: "10px",
+          }}
+        >
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              style={{
+                textAlign: msg.role === "user" ? "right" : "left",
+                marginBottom: "10px",
+              }}
+            >
+              <div
+                style={{
+                  display: "inline-block",
+                  padding: "8px 12px",
+                  borderRadius: "10px",
+                  backgroundColor: msg.role === "user" ? "#007bff" : "#e5e5ea",
+                  color: msg.role === "user" ? "#fff" : "#000",
+                  maxWidth: "80%",
+                  whiteSpace: "pre-line",
+                }}
+                dangerouslySetInnerHTML={{ __html: msg.content }}
+              />
+            </div>
+          ))}
+          {loading && (
+            <div style={{ textAlign: "center", color: "#888" }}>
+              Typing...
+            </div>
           )}
+        </div>
 
-        {loading && <div style={styles.loading}>Assistant is typing…</div>}
+        {/* Input */}
+        <div style={{ display: "flex", gap: "10px" }}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Type your question…"
+            style={{
+              flex: 1,
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              resize: "none",
+            }}
+          />
+          <button
+            onClick={sendMessage}
+            style={{
+              padding: "10px 20px",
+              border: "none",
+              borderRadius: "8px",
+              backgroundColor: "#007bff",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            Send
+          </button>
+        </div>
       </div>
-
-      {/* Input */}
-      <div style={styles.inputContainer}>
-        <textarea
-          style={styles.input}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyPress}
-          placeholder="Type your question…"
-        />
-        <button style={styles.button} onClick={() => sendMessage(input)}>
-          Send
-        </button>
-      </div>
-
-      {/* Link styles */}
-      <style jsx>{`
-        a {
-          color: inherit;
-          text-decoration: underline;
-          cursor: pointer;
-        }
-        a:hover {
-          opacity: 0.8;
-        }
-      `}</style>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    maxWidth: "600px",
-    margin: "0 auto",
-    display: "flex",
-    flexDirection: "column",
-    height: "100vh",
-    padding: "20px",
-    boxSizing: "border-box",
-  },
-  logo: {
-    maxWidth: "160px",
-    margin: "0 auto 10px auto",
-    display: "block",
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "10px",
-  },
-  quickReplies: {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "center",
-    marginBottom: "10px",
-    flexWrap: "wrap",
-  },
-  quickReplyButton: {
-    padding: "8px 12px",
-    backgroundColor: "#007aff",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "14px",
-  },
-  chatBox: {
-    flex: 1,
-    overflowY: "auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    padding: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-    marginBottom: "10px",
-    backgroundColor: "#f9f9f9",
-  },
-  message: {
-    padding: "10px",
-    borderRadius: "10px",
-    maxWidth: "85%",
-    whiteSpace: "pre-line",
-  },
-  loading: {
-    fontStyle: "italic",
-    color: "#666",
-  },
-  inputContainer: {
-    display: "flex",
-    gap: "10px",
-  },
-  input: {
-    flex: 1,
-    padding: "10px",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-    fontSize: "14px",
-    resize: "none",
-  },
-  button: {
-    padding: "10px 20px",
-    border: "none",
-    borderRadius: "8px",
-    backgroundColor: "#007aff",
-    color: "white",
-    cursor: "pointer",
-  },
-  contextButtonRow: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "5px",
-    marginBottom: "5px",
-  },
-  contextButton: {
-    padding: "6px 10px",
-    backgroundColor: "#e5e5ea",
-    borderRadius: "6px",
-    cursor: "pointer",
-    border: "1px solid #ccc",
-    fontSize: "12px",
-  },
-};

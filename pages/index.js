@@ -1,32 +1,16 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Format message text to clickable Markdown links
-  const formatMessage = (message) => {
-    if (message.includes("<a")) return message;
+  // Send message to backend API
+  const sendMessage = async (text) => {
+    if (!text.trim()) return;
 
-    let formatted = message.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
-    );
-
-    formatted = formatted.replace(
-      /(https?:\/\/[^\s]+)/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
-    );
-
-    return formatted;
-  };
-
-  const sendMessage = async (customMessage) => {
-    const messageToSend = customMessage || input;
-    if (!messageToSend.trim()) return;
-
-    const newMessages = [...messages, { role: "user", content: messageToSend }];
+    const newMessages = [...messages, { role: "user", content: text }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -34,8 +18,10 @@ export default function Home() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageToSend }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: text }),
       });
 
       const data = await response.json();
@@ -56,37 +42,29 @@ export default function Home() {
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      sendMessage(input);
     }
   };
 
-  // Predefined quick replies
-  const quickReplies = [
-    { label: "Book an RV", text: "I want to book an RV" },
-    { label: "Fridge Help", text: "I need help with my fridge" },
-    { label: "AC Help", text: "I need help with my air conditioning" },
-    { label: "Stove Help", text: "I need help with my stove" },
-    { label: "Policies", text: "Tell me about your rental policies" },
-  ];
+  // Quick reply button handler
+  const handleQuickReply = (text) => {
+    sendMessage(text);
+  };
 
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Island RV Help Desk</h1>
 
-      {/* Quick Reply Buttons */}
+      {/* Quick reply buttons */}
       <div style={styles.quickReplies}>
-        {quickReplies.map((btn, idx) => (
-          <button
-            key={idx}
-            style={styles.quickReplyButton}
-            onClick={() => sendMessage(btn.text)}
-          >
-            {btn.label}
-          </button>
-        ))}
+        <button style={styles.quickButton} onClick={() => handleQuickReply("I want to book an RV")}>Book an RV</button>
+        <button style={styles.quickButton} onClick={() => handleQuickReply("Fridge troubleshooting")}>Fridge Help</button>
+        <button style={styles.quickButton} onClick={() => handleQuickReply("AC troubleshooting")}>AC Help</button>
+        <button style={styles.quickButton} onClick={() => handleQuickReply("Stove troubleshooting")}>Stove Help</button>
+        <button style={styles.quickButton} onClick={() => handleQuickReply("Policies and terms")}>Policies</button>
       </div>
 
-      {/* Chat Box */}
+      {/* Chat area */}
       <div style={styles.chatBox}>
         {messages.map((msg, index) => (
           <div
@@ -97,13 +75,28 @@ export default function Home() {
               backgroundColor: msg.role === "user" ? "#007aff" : "#e5e5ea",
               color: msg.role === "user" ? "white" : "black",
             }}
-            dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
-          />
+          >
+            <ReactMarkdown
+              components={{
+                a: ({ node, ...props }) => (
+                  <a {...props} style={{ color: "#007aff", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer" />
+                ),
+                p: ({ node, ...props }) => (
+                  <p style={{ margin: "6px 0" }} {...props} />
+                ),
+                li: ({ node, ...props }) => (
+                  <li style={{ marginBottom: "4px" }} {...props} />
+                ),
+              }}
+            >
+              {msg.content}
+            </ReactMarkdown>
+          </div>
         ))}
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
       </div>
 
-      {/* Input Field */}
+      {/* Input area */}
       <div style={styles.inputContainer}>
         <textarea
           style={styles.input}
@@ -112,23 +105,10 @@ export default function Home() {
           onKeyDown={handleKeyPress}
           placeholder="Type your question…"
         />
-        <button style={styles.button} onClick={() => sendMessage()}>
+        <button style={styles.button} onClick={() => sendMessage(input)}>
           Send
         </button>
       </div>
-
-      {/* Scoped link styles */}
-      <style jsx>{`
-        a {
-          color: #007aff;
-          text-decoration: underline;
-          cursor: pointer;
-          word-break: break-word;
-        }
-        a:hover {
-          opacity: 0.8;
-        }
-      `}</style>
     </div>
   );
 }
@@ -150,18 +130,18 @@ const styles = {
   quickReplies: {
     display: "flex",
     flexWrap: "wrap",
-    gap: "10px",
     justifyContent: "center",
-    marginBottom: "15px",
+    gap: "8px",
+    marginBottom: "10px",
   },
-  quickReplyButton: {
+  quickButton: {
+    padding: "6px 12px",
     backgroundColor: "#007aff",
     color: "white",
     border: "none",
     borderRadius: "8px",
-    padding: "8px 12px",
-    fontSize: "14px",
     cursor: "pointer",
+    fontSize: "14px",
   },
   chatBox: {
     flex: 1,
@@ -173,12 +153,14 @@ const styles = {
     border: "1px solid #ccc",
     borderRadius: "8px",
     marginBottom: "10px",
+    backgroundColor: "#fff",
   },
   message: {
     padding: "10px",
     borderRadius: "10px",
     maxWidth: "80%",
     wordWrap: "break-word",
+    whiteSpace: "pre-wrap", // keeps line breaks intact
   },
   loading: {
     fontStyle: "italic",

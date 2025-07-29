@@ -1,1 +1,53 @@
+{
+  "small": {
+    "includedItems": [
+      "Fresh mattress protector",
+      "Basic kitchen set (pots, pans, utensils)",
+      "Full propane tank",
+      "2 outdoor chairs"
+    ],
+    "addOns": [
+      "Bedding sets",
+      "BBQ rental"
+    ]
+  },
+  "mid": {
+    "includedItems": [
+      "Fresh mattress protector",
+      "Expanded kitchen set (pots, pans, utensils, kettle)",
+      "Full propane tank",
+      "4 outdoor chairs"
+    ],
+    "addOns": [
+      "Bedding sets",
+      "BBQ rental",
+      "Portable generator"
+    ]
+  },
+  "full": {
+    "includedItems": [
+      "Fresh mattress protector",
+      "Full kitchenware set",
+      "Full propane tank",
+      "6 outdoor chairs"
+    ],
+    "addOns": [
+      "Bedding sets",
+      "BBQ rental",
+      "Portable generator",
+      "Outdoor table"
+    ]
+  },
+  "campervan": {
+    "includedItems": [
+      "Fresh mattress protector",
+      "Compact kitchenware set",
+      "Full propane tank"
+    ],
+    "addOns": [
+      "Bedding sets",
+      "BBQ rental"
+    ]
+  }
+}
 

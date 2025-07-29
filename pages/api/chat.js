@@ -19,23 +19,25 @@ export default async function handler(req, res) {
             role: "system",
             content: `You are the official help desk assistant for Island RV Rentals.
 
-Responsibilities:
-- Troubleshoot appliances: **fridge (Norcold, Dometic)**, **stove**, and **air conditioner (A/C)**.
-- When an appliance is mentioned:
-  1. Confirm **brand** (for fridges: Norcold or Dometic).
-  2. Provide **common troubleshooting flows** based on category:
-     - **Power issue**: Check battery charge, fuses, and shore power.
-     - **Propane issue**: Confirm propane valve open, check for leaks or flame.
-     - **Soft reset**: Step-by-step reset instructions per appliance.
-- Prioritize **safety**: If propane smell, smoke, or fire, instruct customer to exit and call emergency services.
-- Provide links when relevant:
-  - [View Tutorials](https://islandrv.ca/document-library/)
-  - [Book Now](https://islandrv.ca/booknow/)
-- Never mention or recommend competitors.
-- Format all links using **Markdown** (e.g., [text](url)) — no raw HTML.
+Focus Areas:
+- Troubleshoot **appliances** (fridge, stove, A/C) rather than RV type.
+- For fridges, always ask for **brand** (Norcold or Dometic) if not mentioned.
+- Provide **step-by-step troubleshooting** for:
+  - **Power issues** (battery, fuses, shore power)
+  - **Propane issues** (valve open, leaks, flame ignition)
+  - **Soft reset** (power cycle instructions)
 
-Goal:
-Quickly guide customers to resolve appliance issues safely or direct them to tutorials/booking when needed.`
+Safety:
+- If propane smell, smoke, or fire is mentioned, instruct the customer to exit immediately and call emergency services.
+
+Links:
+- Troubleshooting guides: [View Tutorials](https://islandrv.ca/document-library/)
+- Bookings: [Book Now](https://islandrv.ca/booknow/)
+
+Rules:
+- Format links with Markdown only.
+- Do not mention competitors.
+- Be concise, calm, and professional.`
           },
           { role: "user", content: message }
         ]
@@ -44,10 +46,6 @@ Quickly guide customers to resolve appliance issues safely or direct them to tut
 
     const data = await response.json();
 
-    // Debug log for troubleshooting
-    console.log("OpenAI API response:", JSON.stringify(data, null, 2));
-
-    // Handle missing response
     if (!data.choices || !data.choices[0]?.message?.content) {
       return res.status(500).json({
         error: data.error?.message || "No reply received from OpenAI API"
@@ -56,12 +54,12 @@ Quickly guide customers to resolve appliance issues safely or direct them to tut
 
     let reply = data.choices[0].message.content;
 
-    // Ensure booking link is added for booking questions
+    // Ensure booking link appears if user asks about booking
     if (/book|reserve|rental/i.test(message) && !reply.includes("https://islandrv.ca/booknow/")) {
       reply += `\n\nYou can book directly here: [Book Now](https://islandrv.ca/booknow/)`;
     }
 
-    // Convert any accidental raw <a> tags to Markdown format
+    // Convert accidental raw <a> tags to Markdown
     reply = reply.replace(
       /<a\s+href=["'](https?:\/\/[^"']+)["'][^>]*>(.*?)<\/a>/gi,
       "[$2]($1)"
@@ -70,8 +68,7 @@ Quickly guide customers to resolve appliance issues safely or direct them to tut
     // Remove competitor mentions
     const competitors = ["Outdoorsy", "RVshare", "Cruise America", "Campanda"];
     competitors.forEach(name => {
-      const regex = new RegExp(name, "gi");
-      reply = reply.replace(regex, "Island RV Rentals");
+      reply = reply.replace(new RegExp(name, "gi"), "Island RV Rentals");
     });
 
     res.status(200).json({ reply });

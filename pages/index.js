@@ -9,7 +9,6 @@ export default function Home() {
   const formatMessage = (message) => {
     if (message.includes("<a")) return message;
 
-    // Convert [text](url) to HTML anchors
     return message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
@@ -82,7 +81,7 @@ export default function Home() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
-          placeholder="Type your question (e.g., 'Fridge issue - Norcold')…"
+          placeholder="Type your question (e.g., 'Stove won’t ignite - Atwood')…"
         />
         <button style={styles.button} onClick={sendMessage}>
           Send

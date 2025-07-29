@@ -6,11 +6,19 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Send message to backend API
-  const sendMessage = async (text) => {
-    if (!text.trim()) return;
+  const quickReplies = [
+    { label: "Book an RV", text: "I want to book an RV" },
+    { label: "Fridge Help", text: "help with fridge" },
+    { label: "AC Help", text: "help with AC" },
+    { label: "Stove Help", text: "help with stove" },
+    { label: "Policies", text: "What are your rental policies?" },
+  ];
 
-    const newMessages = [...messages, { role: "user", content: text }];
+  const sendMessage = async (text) => {
+    const content = text || input;
+    if (!content.trim()) return;
+
+    const newMessages = [...messages, { role: "user", content }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -18,10 +26,8 @@ export default function Home() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: text }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content }),
       });
 
       const data = await response.json();
@@ -29,11 +35,8 @@ export default function Home() {
         ...newMessages,
         { role: "assistant", content: data.reply || "Error: No reply received" },
       ]);
-    } catch (error) {
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: "Error contacting server" },
-      ]);
+    } catch {
+      setMessages([...newMessages, { role: "assistant", content: "Error contacting server" }]);
     } finally {
       setLoading(false);
     }
@@ -42,13 +45,8 @@ export default function Home() {
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage(input);
+      sendMessage();
     }
-  };
-
-  // Quick reply button handler
-  const handleQuickReply = (text) => {
-    sendMessage(text);
   };
 
   return (
@@ -57,14 +55,17 @@ export default function Home() {
 
       {/* Quick reply buttons */}
       <div style={styles.quickReplies}>
-        <button style={styles.quickButton} onClick={() => handleQuickReply("I want to book an RV")}>Book an RV</button>
-        <button style={styles.quickButton} onClick={() => handleQuickReply("Fridge troubleshooting")}>Fridge Help</button>
-        <button style={styles.quickButton} onClick={() => handleQuickReply("AC troubleshooting")}>AC Help</button>
-        <button style={styles.quickButton} onClick={() => handleQuickReply("Stove troubleshooting")}>Stove Help</button>
-        <button style={styles.quickButton} onClick={() => handleQuickReply("Policies and terms")}>Policies</button>
+        {quickReplies.map((btn, index) => (
+          <button
+            key={index}
+            style={styles.quickButton}
+            onClick={() => sendMessage(btn.text)}
+          >
+            {btn.label}
+          </button>
+        ))}
       </div>
 
-      {/* Chat area */}
       <div style={styles.chatBox}>
         {messages.map((msg, index) => (
           <div
@@ -76,27 +77,12 @@ export default function Home() {
               color: msg.role === "user" ? "white" : "black",
             }}
           >
-            <ReactMarkdown
-              components={{
-                a: ({ node, ...props }) => (
-                  <a {...props} style={{ color: "#007aff", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer" />
-                ),
-                p: ({ node, ...props }) => (
-                  <p style={{ margin: "6px 0" }} {...props} />
-                ),
-                li: ({ node, ...props }) => (
-                  <li style={{ marginBottom: "4px" }} {...props} />
-                ),
-              }}
-            >
-              {msg.content}
-            </ReactMarkdown>
+            <ReactMarkdown>{msg.content}</ReactMarkdown>
           </div>
         ))}
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
       </div>
 
-      {/* Input area */}
       <div style={styles.inputContainer}>
         <textarea
           style={styles.input}
@@ -105,7 +91,7 @@ export default function Home() {
           onKeyDown={handleKeyPress}
           placeholder="Type your question…"
         />
-        <button style={styles.button} onClick={() => sendMessage(input)}>
+        <button style={styles.button} onClick={() => sendMessage()}>
           Send
         </button>
       </div>
@@ -123,23 +109,20 @@ const styles = {
     padding: "20px",
     boxSizing: "border-box",
   },
-  header: {
-    textAlign: "center",
-    marginBottom: "10px",
-  },
+  header: { textAlign: "center", marginBottom: "10px" },
   quickReplies: {
     display: "flex",
+    gap: "8px",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: "8px",
-    marginBottom: "10px",
+    marginBottom: "15px",
   },
   quickButton: {
-    padding: "6px 12px",
     backgroundColor: "#007aff",
-    color: "white",
+    color: "#fff",
     border: "none",
     borderRadius: "8px",
+    padding: "6px 12px",
     cursor: "pointer",
     fontSize: "14px",
   },
@@ -153,23 +136,15 @@ const styles = {
     border: "1px solid #ccc",
     borderRadius: "8px",
     marginBottom: "10px",
-    backgroundColor: "#fff",
   },
   message: {
     padding: "10px",
     borderRadius: "10px",
     maxWidth: "80%",
-    wordWrap: "break-word",
-    whiteSpace: "pre-wrap", // keeps line breaks intact
+    whiteSpace: "pre-line",
   },
-  loading: {
-    fontStyle: "italic",
-    color: "#666",
-  },
-  inputContainer: {
-    display: "flex",
-    gap: "10px",
-  },
+  loading: { fontStyle: "italic", color: "#666" },
+  inputContainer: { display: "flex", gap: "10px" },
   input: {
     flex: 1,
     padding: "10px",

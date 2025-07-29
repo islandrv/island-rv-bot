@@ -5,7 +5,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Convert Markdown and plain URLs to clickable links
+  // Convert Markdown and URLs into clickable links
   const formatMessage = (message) => {
     if (message.includes("<a")) return message; // Prevent re-processing
     let formatted = message.replace(
@@ -56,7 +56,7 @@ export default function Home() {
     }
   };
 
-  // Quick reply handlers
+  // Quick reply shortcuts
   const quickReplies = [
     { label: "Book an RV", text: "I want to book an RV" },
     { label: "Fridge Help", text: "I need help with my fridge" },
@@ -65,17 +65,17 @@ export default function Home() {
     { label: "Policies", text: "What are your policies?" },
   ];
 
-  // Educational general info content
+  // Educational info for appliances
   const generalInfo = {
     fridge:
-      "**Fridge Tips**:\n- Fridges take longer to cool in hot weather.\n- Pre-chill items before loading.\n- Avoid frequent door opening to maintain temperature.\n- Allow airflow around vents for best performance.",
+      "**Fridge Tips**:\n- Fridges take 6–8 hours to cool after startup.\n- Performance is slower in hot weather and with warm contents.\n- Keep fridge level and vents clear.\n- Minimize door openings for steady cooling.",
     ac:
-      "**AC Tips**:\n- AC units require 30-amp power; weak power may cause poor cooling.\n- Clean air filters improve efficiency.\n- In extreme heat, assist cooling by closing blinds and using fans.",
+      "**AC Tips**:\n- Requires 30-amp power; weak power reduces cooling.\n- Close blinds and pre-cool RV during extreme heat.\n- Clean filters for better airflow.\n- Reset breakers if AC stops unexpectedly.",
     stove:
-      "**Stove Tips**:\n- Ensure propane is on and check igniter spark.\n- Avoid cooking with doors/windows closed to prevent buildup.\n- Clean burners regularly for even flame.",
+      "**Stove Tips**:\n- Runs on propane; check tank and valve are open.\n- Turn knob and press igniter (listen for click).\n- Ventilate while cooking.\n- Clean burners for even flame.",
   };
 
-  // Append buttons dynamically for General Info & Troubleshoot
+  // Show contextual buttons (General Info + Troubleshoot)
   const renderContextButtons = (appliance) => (
     <div style={styles.contextButtonRow}>
       <button
@@ -115,7 +115,7 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Chat Box */}
+      {/* Chat Messages */}
       <div style={styles.chatBox}>
         {messages.map((msg, index) => (
           <div
@@ -130,7 +130,7 @@ export default function Home() {
           />
         ))}
 
-        {/* Contextual buttons (after appliance help selection) */}
+        {/* Contextual buttons after appliance help */}
         {messages.length > 0 &&
           ["fridge", "AC", "stove"].some((a) =>
             messages[messages.length - 1].content
@@ -148,7 +148,7 @@ export default function Home() {
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
       </div>
 
-      {/* Input */}
+      {/* Input box */}
       <div style={styles.inputContainer}>
         <textarea
           style={styles.input}
@@ -177,7 +177,7 @@ export default function Home() {
   );
 }
 
-// Styles
+// Styling
 const styles = {
   container: {
     maxWidth: "600px",

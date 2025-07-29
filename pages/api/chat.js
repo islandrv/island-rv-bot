@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { message, unitType } = req.body;
+  const { message } = req.body;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -19,45 +19,18 @@ export default async function handler(req, res) {
             role: "system",
             content: `You are the official help desk assistant for Island RV Rentals.
 
-Context:
-- The user’s RV unit type is: ${unitType || "unknown"}.
-- Do not repeatedly ask for the unit type if already provided; confirm once and proceed.
-- Provide calm, step-by-step troubleshooting tailored to trailers, motorhomes, and campervans.
-- Prioritize safety: if propane leaks, smoke, or fire are suspected, instruct evacuation and emergency services.
-- For booking: Always provide a Markdown link [Book Now](https://islandrv.ca/booknow/).
-- For manuals/tutorials: Use [View Tutorials](https://islandrv.ca/document-library/).
-- Never mention competitors or external rental services.
-- Always use Markdown links, never raw HTML.
+Responsibilities:
+- Provide troubleshooting for Island RV rental units (trailers, motorhomes, campervans).
+- Always confirm which unit type the customer has before giving instructions.
+- Guide customers step-by-step, avoiding jargon where possible.
+- If there are signs of propane leaks, electrical fire, or immediate hazards, instruct the customer to exit the RV and call emergency services.
+- For booking or reservation questions, always use this Markdown link: [Book Now](https://islandrv.ca/booknow/).
+- For troubleshooting guides or manuals, always use this Markdown link: [View Tutorials](https://islandrv.ca/document-library/).
+- Never mention or recommend competitors.
+- Always use **Markdown links only** — no raw HTML tags.
 
-### Troubleshooting Flows (Use these as structured steps):
-
-**Fridge Issues (Dometic / Norcold):**
-1. Ask: “Is the fridge running on propane, battery, or shore power?”
-2. Check propane: Is the propane valve open? Are other propane appliances working (e.g., stove)?
-3. Check power: Is the RV plugged into shore power or is the battery charged?
-4. Inspect fridge control panel: Are there error codes or blinking lights?
-5. Suggest resetting fridge (power cycle) and refer to [View Tutorials](https://islandrv.ca/document-library/) for detailed reset steps.
-
-**Power Issues (No lights / outlets):**
-1. Ask: “Is the RV connected to shore power, generator, or battery?”
-2. Check breaker panel and fuses; guide user to reset any tripped breakers.
-3. Verify battery charge level; recommend testing with multimeter if available.
-4. Suggest connecting to shore power and checking indicator lights.
-
-**Water Pump / Plumbing Issues:**
-1. Confirm if water tank is filled.
-2. Check pump switch and fuse.
-3. Listen for pump activation; if silent, guide through fuse and wiring checks.
-
-**Air Conditioning Issues:**
-1. Confirm if running on shore power (most RV AC units won’t work on 12V battery alone).
-2. Check thermostat settings (mode and temperature).
-3. Inspect breaker/fuse for AC unit.
-4. Recommend waiting a few minutes after power loss before restarting.
-
----
-
-Goal: Help the customer resolve their issue or guide them to booking/manual links as quickly and safely as possible, focusing only on Island RV Rentals services.`
+Goal:
+Help the customer resolve their issue or book an RV quickly and safely, focusing only on Island RV Rentals services.`
           },
           { role: "user", content: message }
         ]
@@ -66,32 +39,41 @@ Goal: Help the customer resolve their issue or guide them to booking/manual link
 
     const data = await response.json();
 
+    // Debugging
+    console.log("OpenAI API response:", JSON.stringify(data, null, 2));
+
+    // Handle missing content
     if (!data.choices || !data.choices[0]?.message?.content) {
-      return res.status(500).json({ error: "No reply received from OpenAI API" });
+      return res.status(500).json({
+        error: data.error?.message || "No reply received from OpenAI API"
+      });
     }
 
     let reply = data.choices[0].message.content;
 
-    // Convert any accidental HTML to Markdown
+    // If AI accidentally returns <a> tags, convert them to Markdown
     reply = reply.replace(
       /<a\s+href=["'](https?:\/\/[^"']+)["'][^>]*>(.*?)<\/a>/gi,
       "[$2]($1)"
     );
 
-    // Add booking link if user asked about booking
+    // Safeguard: Ensure booking link is added if user asked about booking
     if (/book|reserve|rental/i.test(message) && !reply.includes("https://islandrv.ca/booknow/")) {
       reply += `\n\nYou can book directly here: [Book Now](https://islandrv.ca/booknow/)`;
     }
 
-    // Remove competitor mentions if present
+    // Remove competitor names if they appear
     const competitors = ["Outdoorsy", "RVshare", "Cruise America", "Campanda"];
-    competitors.forEach((name) => {
+    competitors.forEach(name => {
       const regex = new RegExp(name, "gi");
       reply = reply.replace(regex, "Island RV Rentals");
     });
 
     res.status(200).json({ reply });
   } catch (error) {
-    res.status(500).json({ error: error.message || "Failed to fetch response from OpenAI" });
+    console.error("OpenAI API Error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to fetch response from OpenAI"
+    });
   }
 }

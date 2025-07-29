@@ -4,11 +4,29 @@
       "Fresh mattress protector",
       "Basic kitchen set (pots, pans, utensils)",
       "Full propane tank",
-      "2 outdoor chairs"
+      "2 outdoor chairs",
+      "Electric coffee maker with filters",
+      "Electric kettle",
+      "Standard kettle",
+      "Electric toaster",
+      "Fry pan and saucepans",
+      "Cutting board, knives, spatula, flipper, wooden spoons",
+      "Outdoor carpet",
+      "Plates, bowls, mugs, cutlery",
+      "Toilet paper x2, dish towels x2, J-cloths x2, garbage bags"
     ],
     "addOns": [
-      "Bedding sets",
-      "BBQ rental"
+      { "item": "Pet Fee", "price": "$75" },
+      { "item": "BBQ + Small Green Bottle", "price": "$45" },
+      { "item": "Generator + Small Fuel Can", "price": "$65", "note": "Not strong enough for A/C unit" },
+      { "item": "Propane Fire Pit + 10lb Tank", "price": "$50" },
+      { "item": "Camping Chairs", "price": "$5 each" },
+      { "item": "Bedding + Towels for 4 People", "price": "$100" },
+      { "item": "Hitch", "price": "$50" },
+      { "item": "Delivery & Setup: Parksville, Nanaimo, Ladysmith Area", "price": "$155" },
+      { "item": "Delivery & Setup: Campbell River, Courtney, Port Alberni, Lake Cowichan", "price": "$350" },
+      { "item": "Delivery & Setup: Qualicum Beach, Chemainus", "price": "$180" },
+      { "item": "Delivery & Setup: Location Not Listed", "price": "Custom Quote" }
     ]
   },
   "mid": {
@@ -16,38 +34,35 @@
       "Fresh mattress protector",
       "Expanded kitchen set (pots, pans, utensils, kettle)",
       "Full propane tank",
-      "4 outdoor chairs"
+      "4 outdoor chairs",
+      "Electric coffee maker with filters",
+      "Microwave, stove top, fridge",
+      "Outdoor carpet, cutting board, mixing bowls",
+      "Toilet paper x2, dish towels x2, J-cloths x2, garbage bags"
     ],
-    "addOns": [
-      "Bedding sets",
-      "BBQ rental",
-      "Portable generator"
-    ]
+    "addOns": "Same as small"
   },
   "full": {
     "includedItems": [
       "Fresh mattress protector",
-      "Full kitchenware set",
+      "Expanded kitchen set with more cookware",
       "Full propane tank",
-      "6 outdoor chairs"
+      "6 outdoor chairs",
+      "Microwave, stove top, oven, fridge, dining table",
+      "Outdoor carpet, cutting board, mixing bowls",
+      "Toilet paper x2, dish towels x2, J-cloths x2, garbage bags"
     ],
-    "addOns": [
-      "Bedding sets",
-      "BBQ rental",
-      "Portable generator",
-      "Outdoor table"
-    ]
+    "addOns": "Same as small"
   },
   "campervan": {
     "includedItems": [
       "Fresh mattress protector",
-      "Compact kitchenware set",
-      "Full propane tank"
+      "Compact kitchen set (pots, pans, utensils)",
+      "Single propane tank",
+      "2 outdoor chairs",
+      "Compact fridge, sink, stove top",
+      "Toilet paper x2, dish towels x2, J-cloths x2, garbage bags"
     ],
-    "addOns": [
-      "Bedding sets",
-      "BBQ rental"
-    ]
+    "addOns": "Same as small"
   }
 }
-

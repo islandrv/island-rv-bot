@@ -6,19 +6,20 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Predefined quick replies
   const quickReplies = [
     { label: "Book an RV", text: "I want to book an RV" },
     { label: "Fridge Help", text: "help with fridge" },
     { label: "AC Help", text: "help with AC" },
     { label: "Stove Help", text: "help with stove" },
-    { label: "Policies", text: "What are your rental policies?" },
+    { label: "Policies", text: "tell me about rental policies" },
   ];
 
-  const sendMessage = async (text) => {
-    const content = text || input;
-    if (!content.trim()) return;
+  const sendMessage = async (text = null) => {
+    const messageText = text || input;
+    if (!messageText.trim()) return;
 
-    const newMessages = [...messages, { role: "user", content }];
+    const newMessages = [...messages, { role: "user", content: messageText }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -26,8 +27,10 @@ export default function Home() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: messageText }),
       });
 
       const data = await response.json();
@@ -35,8 +38,11 @@ export default function Home() {
         ...newMessages,
         { role: "assistant", content: data.reply || "Error: No reply received" },
       ]);
-    } catch {
-      setMessages([...newMessages, { role: "assistant", content: "Error contacting server" }]);
+    } catch (error) {
+      setMessages([
+        ...newMessages,
+        { role: "assistant", content: "Error contacting server" },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -53,19 +59,20 @@ export default function Home() {
     <div style={styles.container}>
       <h1 style={styles.header}>Island RV Help Desk</h1>
 
-      {/* Quick reply buttons */}
-      <div style={styles.quickReplies}>
-        {quickReplies.map((btn, index) => (
+      {/* Quick Reply Buttons */}
+      <div style={styles.quickReplyContainer}>
+        {quickReplies.map((reply, idx) => (
           <button
-            key={index}
-            style={styles.quickButton}
-            onClick={() => sendMessage(btn.text)}
+            key={idx}
+            style={styles.quickReplyButton}
+            onClick={() => sendMessage(reply.text)}
           >
-            {btn.label}
+            {reply.label}
           </button>
         ))}
       </div>
 
+      {/* Chat Box */}
       <div style={styles.chatBox}>
         {messages.map((msg, index) => (
           <div
@@ -77,12 +84,13 @@ export default function Home() {
               color: msg.role === "user" ? "white" : "black",
             }}
           >
-            <ReactMarkdown>{msg.content}</ReactMarkdown>
+            <ReactMarkdown className="markdown">{msg.content}</ReactMarkdown>
           </div>
         ))}
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
       </div>
 
+      {/* Input */}
       <div style={styles.inputContainer}>
         <textarea
           style={styles.input}
@@ -95,6 +103,23 @@ export default function Home() {
           Send
         </button>
       </div>
+
+      {/* Scoped markdown styles */}
+      <style jsx>{`
+        .markdown {
+          line-height: 1.4;
+        }
+        .markdown ol {
+          margin: 0 0 0 20px;
+          padding: 0;
+        }
+        .markdown li {
+          margin-bottom: 4px;
+        }
+        .markdown p {
+          margin: 0;
+        }
+      `}</style>
     </div>
   );
 }
@@ -109,19 +134,22 @@ const styles = {
     padding: "20px",
     boxSizing: "border-box",
   },
-  header: { textAlign: "center", marginBottom: "10px" },
-  quickReplies: {
+  header: {
+    textAlign: "center",
+    marginBottom: "20px",
+  },
+  quickReplyContainer: {
     display: "flex",
-    gap: "8px",
+    gap: "10px",
+    marginBottom: "15px",
     flexWrap: "wrap",
     justifyContent: "center",
-    marginBottom: "15px",
   },
-  quickButton: {
+  quickReplyButton: {
     backgroundColor: "#007aff",
-    color: "#fff",
+    color: "white",
     border: "none",
-    borderRadius: "8px",
+    borderRadius: "6px",
     padding: "6px 12px",
     cursor: "pointer",
     fontSize: "14px",
@@ -141,10 +169,16 @@ const styles = {
     padding: "10px",
     borderRadius: "10px",
     maxWidth: "80%",
-    whiteSpace: "pre-line",
+    wordWrap: "break-word",
   },
-  loading: { fontStyle: "italic", color: "#666" },
-  inputContainer: { display: "flex", gap: "10px" },
+  loading: {
+    fontStyle: "italic",
+    color: "#666",
+  },
+  inputContainer: {
+    display: "flex",
+    gap: "10px",
+  },
   input: {
     flex: 1,
     padding: "10px",

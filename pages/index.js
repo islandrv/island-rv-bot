@@ -5,12 +5,11 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Format Markdown links [text](url) → clickable <a> links
+  // Convert Markdown links to clickable anchors
   const formatMessage = (message) => {
-    // If already contains <a>, skip conversion
-    if (/<a\s+href=/i.test(message)) return message;
+    if (message.includes("<a")) return message;
 
-    // Convert Markdown [text](url) to <a>
+    // Convert [text](url) to HTML anchors
     return message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
@@ -20,7 +19,6 @@ export default function Home() {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // Add user message to chat
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
@@ -36,6 +34,7 @@ export default function Home() {
       });
 
       const data = await response.json();
+
       setMessages([
         ...newMessages,
         { role: "assistant", content: data.reply || "Error: No reply received" },
@@ -83,20 +82,18 @@ export default function Home() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
-          placeholder="Type your question…"
+          placeholder="Type your question (e.g., 'Fridge issue - Norcold')…"
         />
         <button style={styles.button} onClick={sendMessage}>
           Send
         </button>
       </div>
 
-      {/* Scoped link styles */}
       <style jsx>{`
         a {
           color: #007aff;
           text-decoration: underline;
           cursor: pointer;
-          word-break: break-word;
         }
         a:hover {
           opacity: 0.8;

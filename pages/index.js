@@ -1,28 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showQuickReplies, setShowQuickReplies] = useState(true);
 
-  useEffect(() => {
-    setMessages([
-      {
-        role: "assistant",
-        content:
-          "Hi! What do you need help with?\n\n- **Appliance Troubleshooting** (fridge, stove, A/C, water, heater)\n- **Booking Help** (reservations, payments, cancellations)\n- **Company Info & Policies** (delivery, pets, insurance, check-in/out)"
-      }
-    ]);
-  }, []);
-
+  // Convert Markdown links and plain URLs to clickable links
   const formatMessage = (message) => {
-    if (message.includes("<a")) return message;
+    if (message.includes("<a")) {
+      return message;
+    }
 
-    return message.replace(
+    let formatted = message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
     );
+
+    formatted = formatted.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+
+    return formatted;
   };
 
   const sendMessage = async (customMessage) => {
@@ -33,7 +32,6 @@ export default function Home() {
     setMessages(newMessages);
     setInput("");
     setLoading(true);
-    setShowQuickReplies(false);
 
     try {
       const response = await fetch("/api/chat", {
@@ -45,7 +43,6 @@ export default function Home() {
       });
 
       const data = await response.json();
-
       setMessages([
         ...newMessages,
         { role: "assistant", content: data.reply || "Error: No reply received" },
@@ -60,10 +57,6 @@ export default function Home() {
     }
   };
 
-  const handleQuickReply = (option) => {
-    sendMessage(option);
-  };
-
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -71,9 +64,31 @@ export default function Home() {
     }
   };
 
+  // Quick reply buttons
+  const quickReplies = [
+    { label: "Book an RV", value: "I want to book an RV" },
+    { label: "Fridge Help", value: "I need help with my fridge" },
+    { label: "AC Help", value: "I need help with my A/C" },
+    { label: "Stove Help", value: "I need help with my stove" },
+    { label: "Policies", value: "Tell me about rental policies" },
+  ];
+
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Island RV Help Desk</h1>
+
+      {/* Quick reply buttons */}
+      <div style={styles.quickReplyContainer}>
+        {quickReplies.map((qr, idx) => (
+          <button
+            key={idx}
+            style={styles.quickReplyButton}
+            onClick={() => sendMessage(qr.value)}
+          >
+            {qr.label}
+          </button>
+        ))}
+      </div>
 
       <div style={styles.chatBox}>
         {messages.map((msg, index) => (
@@ -89,21 +104,6 @@ export default function Home() {
           />
         ))}
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
-
-        {/* Quick reply buttons */}
-        {showQuickReplies && (
-          <div style={styles.quickReplies}>
-            <button style={styles.quickButton} onClick={() => handleQuickReply("Appliance Troubleshooting")}>
-              Appliance
-            </button>
-            <button style={styles.quickButton} onClick={() => handleQuickReply("Booking Help")}>
-              Booking
-            </button>
-            <button style={styles.quickButton} onClick={() => handleQuickReply("Company Info & Policies")}>
-              Policies
-            </button>
-          </div>
-        )}
       </div>
 
       <div style={styles.inputContainer}>
@@ -121,9 +121,10 @@ export default function Home() {
 
       <style jsx>{`
         a {
-          color: #007aff;
+          color: inherit;
           text-decoration: underline;
           cursor: pointer;
+          word-break: break-word;
         }
         a:hover {
           opacity: 0.8;
@@ -145,7 +146,23 @@ const styles = {
   },
   header: {
     textAlign: "center",
-    marginBottom: "20px",
+    marginBottom: "10px",
+  },
+  quickReplyContainer: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginBottom: "15px",
+    flexWrap: "wrap",
+  },
+  quickReplyButton: {
+    padding: "8px 14px",
+    backgroundColor: "#007aff",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "14px",
   },
   chatBox: {
     flex: 1,
@@ -167,20 +184,6 @@ const styles = {
   loading: {
     fontStyle: "italic",
     color: "#666",
-  },
-  quickReplies: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "10px",
-  },
-  quickButton: {
-    padding: "8px 16px",
-    border: "1px solid #007aff",
-    borderRadius: "8px",
-    backgroundColor: "white",
-    color: "#007aff",
-    cursor: "pointer",
-    fontSize: "14px",
   },
   inputContainer: {
     display: "flex",

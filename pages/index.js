@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Convert Markdown links to clickable anchors
+  // Add welcome message on load
+  useEffect(() => {
+    setMessages([
+      {
+        role: "assistant",
+        content:
+          "Hi! What do you need help with?\n\n- **Appliance Troubleshooting** (fridge, stove, A/C, water, heater)\n- **Booking Help** (reservations, payments, cancellations)\n- **Company Info & Policies** (delivery, pets, insurance, check-in/out)"
+      }
+    ]);
+  }, []);
+
+  // Convert Markdown to clickable links
   const formatMessage = (message) => {
     if (message.includes("<a")) return message;
 
@@ -81,7 +92,7 @@ export default function Home() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
-          placeholder="Type your question (e.g., 'Stove won’t ignite - Atwood')…"
+          placeholder="Type your question…"
         />
         <button style={styles.button} onClick={sendMessage}>
           Send

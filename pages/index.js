@@ -5,9 +5,8 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Convert Markdown and URLs into clickable links
   const formatMessage = (message) => {
-    if (message.includes("<a")) return message; // Prevent re-processing
+    if (message.includes("<a")) return message;
     let formatted = message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
@@ -56,7 +55,6 @@ export default function Home() {
     }
   };
 
-  // Quick reply shortcuts
   const quickReplies = [
     { label: "Book an RV", text: "I want to book an RV" },
     { label: "Fridge Help", text: "I need help with my fridge" },
@@ -65,7 +63,6 @@ export default function Home() {
     { label: "Policies", text: "What are your policies?" },
   ];
 
-  // Educational info for appliances
   const generalInfo = {
     fridge:
       "**Fridge Tips**:\n- Fridges take 6–8 hours to cool after startup.\n- Performance is slower in hot weather and with warm contents.\n- Keep fridge level and vents clear.\n- Minimize door openings for steady cooling.",
@@ -75,7 +72,6 @@ export default function Home() {
       "**Stove Tips**:\n- Runs on propane; check tank and valve are open.\n- Turn knob and press igniter (listen for click).\n- Ventilate while cooking.\n- Clean burners for even flame.",
   };
 
-  // Show contextual buttons (General Info + Troubleshoot)
   const renderContextButtons = (appliance) => (
     <div style={styles.contextButtonRow}>
       <button
@@ -100,6 +96,9 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
+      {/* LOGO */}
+      <img src="/logo.png" alt="Island RV Rentals Logo" style={styles.logo} />
+
       <h1 style={styles.header}>Island RV Help Desk</h1>
 
       {/* Quick Reply Buttons */}
@@ -130,7 +129,7 @@ export default function Home() {
           />
         ))}
 
-        {/* Contextual buttons after appliance help */}
+        {/* Contextual General Info / Troubleshoot buttons */}
         {messages.length > 0 &&
           ["fridge", "AC", "stove"].some((a) =>
             messages[messages.length - 1].content
@@ -148,7 +147,7 @@ export default function Home() {
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
       </div>
 
-      {/* Input box */}
+      {/* Input */}
       <div style={styles.inputContainer}>
         <textarea
           style={styles.input}
@@ -177,7 +176,6 @@ export default function Home() {
   );
 }
 
-// Styling
 const styles = {
   container: {
     maxWidth: "600px",
@@ -187,6 +185,11 @@ const styles = {
     height: "100vh",
     padding: "20px",
     boxSizing: "border-box",
+  },
+  logo: {
+    maxWidth: "160px",
+    margin: "0 auto 10px auto",
+    display: "block",
   },
   header: {
     textAlign: "center",

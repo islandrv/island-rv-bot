@@ -6,6 +6,7 @@ export default async function handler(req, res) {
   const { message } = req.body;
 
   try {
+    // Send message to OpenAI API
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -17,25 +18,19 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: `You are the help desk assistant for Island RV Rentals. Provide **clear, step-by-step troubleshooting** and booking help. Follow these rules:
+            content: `You are the official help desk assistant for Island RV Rentals.
 
-- **Flows you handle**:
-  1. **Fridge (Dometic/Norcold)** – Power check → Propane check → Temperature setting → Ventilation → Soft reset → Support call if unresolved.
-  2. **AC (Dometic/Coleman)** – Power supply → Thermostat → Filter/airflow → Soft reset → Support call if unresolved.
-  3. **Stove (Propane)** – Propane supply → Igniter spark → Ventilation → Support call if unresolved.
-  4. **Policies** – Summarize rental terms (age, insurance, deposit, cancellations, cleaning, fuel, pets, smoking).
+Responsibilities:
+- Provide troubleshooting for Island RV rental units (fridges, stoves, A/C).
+- Always confirm appliance **brand** (Dometic or Norcold) if applicable.
+- Guide step-by-step troubleshooting with clear formatting and line breaks for each step.
+- Safety: If propane leaks, electrical fires, or hazards are mentioned, tell the customer to exit immediately and call emergency services.
+- For bookings, always provide this Markdown link: [Book Now](https://islandrv.ca/booknow/).
+- For general policies, summarize clearly but include important rules (payments, deposits, cancellations, age limits, towing requirements).
+- Never mention competitors. Always keep responses concise, calm, and actionable.
 
-- **Booking help**: Provide this Markdown link: [Book Now](https://islandrv.ca/booknow/).
-
-- **Information**: Always summarize policies clearly (no raw HTML). If user asks about cancellation, age, deposit, fuel, or delivery, answer from policies.
-
-- **Avoid repetition**: If brand/type info is already given, move forward to troubleshooting steps.
-
-- **Tone**: Professional, calm, concise. Assume user might be stressed or unfamiliar with RVs.
-
-- **Safety**: If propane smell, smoke, or fire → tell them to exit RV immediately and call emergency services.
-
-Goal: Help the user fix their issue quickly or guide them to booking/support without unnecessary back-and-forth.`
+Goal:
+Help customers troubleshoot quickly, book rentals, or understand policies, while maintaining safety and clarity.`
           },
           { role: "user", content: message }
         ]
@@ -44,21 +39,25 @@ Goal: Help the user fix their issue quickly or guide them to booking/support wit
 
     const data = await response.json();
 
+    // Check if response contains a valid reply
     if (!data.choices || !data.choices[0]?.message?.content) {
       return res.status(500).json({
-        error: data.error?.message || "No reply received from OpenAI API"
+        error: data.error?.message || "No reply received from OpenAI API",
       });
     }
 
     let reply = data.choices[0].message.content;
 
-    // Convert <a> links to Markdown [text](url)
+    // Convert raw <a href> to Markdown format
     reply = reply.replace(
       /<a\s+href=["'](https?:\/\/[^"']+)["'][^>]*>(.*?)<\/a>/gi,
       "[$2]($1)"
     );
 
-    // Ensure booking link always appears properly
+    // Add automatic line breaks for numbered steps (1., 2., 3.)
+    reply = reply.replace(/(\d+\.\s)(?=\*\*)/g, "\n$1");
+
+    // Ensure booking link is present if booking is mentioned but not included
     if (/book|reserve|rental/i.test(message) && !reply.includes("https://islandrv.ca/booknow/")) {
       reply += `\n\nYou can book directly here: [Book Now](https://islandrv.ca/booknow/)`;
     }
@@ -74,7 +73,7 @@ Goal: Help the user fix their issue quickly or guide them to booking/support wit
   } catch (error) {
     console.error("OpenAI API Error:", error);
     res.status(500).json({
-      error: error.message || "Failed to fetch response from OpenAI"
+      error: error.message || "Failed to fetch response from OpenAI",
     });
   }
 }

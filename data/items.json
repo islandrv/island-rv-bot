@@ -1,1 +1,114 @@
+{
+  "rvTypes": {
+    "small": {
+      "includedItems": [
+        "Fresh mattress protector",
+        "Basic kitchen set (pots, pans, utensils)",
+        "Full propane tank",
+        "2 outdoor chairs",
+        "Electric coffee maker with filters",
+        "Electric kettle",
+        "Standard kettle",
+        "Electric toaster",
+        "Fry pan and saucepans",
+        "Cutting board, knives, spatula, flipper, wooden spoons",
+        "Outdoor carpet",
+        "Plates, bowls, mugs, cutlery",
+        "Toilet paper x2, dish towels x2, J-cloths x2, garbage bags"
+      ]
+    },
+    "mid": {
+      "includedItems": [
+        "Fresh mattress protector",
+        "Expanded kitchen set (pots, pans, utensils, kettle)",
+        "Full propane tank",
+        "4 outdoor chairs",
+        "Electric coffee maker with filters",
+        "Electric kettle",
+        "Standard kettle",
+        "Electric toaster",
+        "Fry pan and saucepans",
+        "Cutting board, knives, spatula, flipper, wooden spoons",
+        "Outdoor carpet",
+        "Plates, bowls, mugs, cutlery",
+        "Toilet paper x2, dish towels x2, J-cloths x2, garbage bags"
+      ]
+    },
+    "full": {
+      "includedItems": [
+        "Fresh mattress protector",
+        "Expanded kitchen set (pots, pans, utensils, kettle, toaster)",
+        "Full propane tank",
+        "4 outdoor chairs",
+        "Electric coffee maker with filters",
+        "Electric kettle",
+        "Standard kettle",
+        "Electric toaster",
+        "Fry pan and saucepans",
+        "Cutting board, knives, spatula, flipper, wooden spoons",
+        "Outdoor carpet",
+        "Plates, bowls, mugs, cutlery",
+        "Toilet paper x2, dish towels x2, J-cloths x2, garbage bags"
+      ]
+    },
+    "campervan": {
+      "includedItems": [
+        "Fresh mattress protector",
+        "Basic kitchen set (pots, pans, utensils)",
+        "Full propane tank",
+        "2 outdoor chairs",
+        "Electric coffee maker with filters",
+        "Electric kettle",
+        "Standard kettle",
+        "Electric toaster",
+        "Fry pan and saucepans",
+        "Cutting board, knives, spatula, flipper, wooden spoons",
+        "Outdoor carpet",
+        "Plates, bowls, mugs, cutlery",
+        "Toilet paper x2, dish towels x2, J-cloths x2, garbage bags"
+      ]
+    }
+  },
 
+  "rentableItems": [
+    { "item": "Pet Fee", "price": "$75" },
+    { "item": "BBQ + Small Green Bottle", "price": "$45" },
+    { "item": "Generator + Small Fuel Can", "price": "$65", "note": "Not strong enough for A/C unit" },
+    { "item": "Propane Fire Pit + 10lb Tank", "price": "$50" },
+    { "item": "Camping Chairs", "price": "$5 each" },
+    { "item": "Bedding + Towels for 4 People", "price": "$100" },
+    { "item": "Hitch", "price": "$50" }
+  ],
+
+  "deliveryOptions": [
+    { "location": "Parksville, Nanaimo, Ladysmith Area", "price": "$155" },
+    { "location": "Campbell River, Courtney, Port Alberni, Lake Cowichan", "price": "$350" },
+    { "location": "Qualicum Beach, Chemainus", "price": "$180" },
+    { "location": "Location Not Listed", "price": "Contact for Quote" }
+  ],
+
+  "bookingRules": {
+    "minimumNights": {
+      "lowSeason": 3,
+      "highSeason": 5
+    },
+    "seasonalDiscounts": {
+      "lowSeason": {
+        "dates": "Oct 1 to May 31",
+        "discount": "15%"
+      },
+      "multiNight": [
+        { "nights": 3, "discount": "0%" },
+        { "nights": 5, "discount": "5%" },
+        { "nights": 6, "discount": "10%" },
+        { "nights": 7, "discount": "20%" }
+      ]
+    },
+    "additionalFees": [
+      { "fee": "Cleaning Fee", "amount": "$65" },
+      { "fee": "Booking Fee", "amount": "3%" },
+      { "fee": "Base Towing Rate", "amount": "$155" },
+      { "fee": "Refundable Damage Deposit", "amount": "$500" }
+    ]
+  }
+}

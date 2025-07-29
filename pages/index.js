@@ -4,29 +4,23 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [unitType, setUnitType] = useState(null); // NEW: track confirmed unit
 
-  // Format Markdown links to clickable
+  // Format Markdown links [text](url) → clickable <a> links
   const formatMessage = (message) => {
-    if (message.includes("<a")) return message; // Skip if already formatted
+    // If already contains <a>, skip conversion
+    if (/<a\s+href=/i.test(message)) return message;
 
-    let formatted = message.replace(
+    // Convert Markdown [text](url) to <a>
+    return message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
     );
-
-    formatted = formatted.replace(
-      /(https?:\/\/[^\s]+)/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
-    );
-
-    return formatted;
   };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // Add user message
+    // Add user message to chat
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
@@ -35,23 +29,22 @@ export default function Home() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input, unitType }), // pass unitType
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: input }),
       });
 
       const data = await response.json();
-
-      // Detect unit type from assistant response if mentioned
-      if (/motorhome|trailer|campervan/i.test(input)) {
-        setUnitType(input.toLowerCase());
-      }
-
       setMessages([
         ...newMessages,
         { role: "assistant", content: data.reply || "Error: No reply received" },
       ]);
     } catch (error) {
-      setMessages([...newMessages, { role: "assistant", content: "Error contacting server" }]);
+      setMessages([
+        ...newMessages,
+        { role: "assistant", content: "Error contacting server" },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -97,9 +90,10 @@ export default function Home() {
         </button>
       </div>
 
+      {/* Scoped link styles */}
       <style jsx>{`
         a {
-          color: inherit;
+          color: #007aff;
           text-decoration: underline;
           cursor: pointer;
           word-break: break-word;

@@ -5,11 +5,9 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Convert Markdown links and plain URLs to clickable links
+  // Format message text to clickable Markdown links
   const formatMessage = (message) => {
-    if (message.includes("<a")) {
-      return message;
-    }
+    if (message.includes("<a")) return message;
 
     let formatted = message.replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
@@ -36,9 +34,7 @@ export default function Home() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: messageToSend }),
       });
 
@@ -64,32 +60,33 @@ export default function Home() {
     }
   };
 
-  // Quick reply buttons
+  // Predefined quick replies
   const quickReplies = [
-    { label: "Book an RV", value: "I want to book an RV" },
-    { label: "Fridge Help", value: "I need help with my fridge" },
-    { label: "AC Help", value: "I need help with my A/C" },
-    { label: "Stove Help", value: "I need help with my stove" },
-    { label: "Policies", value: "Tell me about rental policies" },
+    { label: "Book an RV", text: "I want to book an RV" },
+    { label: "Fridge Help", text: "I need help with my fridge" },
+    { label: "AC Help", text: "I need help with my air conditioning" },
+    { label: "Stove Help", text: "I need help with my stove" },
+    { label: "Policies", text: "Tell me about your rental policies" },
   ];
 
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Island RV Help Desk</h1>
 
-      {/* Quick reply buttons */}
-      <div style={styles.quickReplyContainer}>
-        {quickReplies.map((qr, idx) => (
+      {/* Quick Reply Buttons */}
+      <div style={styles.quickReplies}>
+        {quickReplies.map((btn, idx) => (
           <button
             key={idx}
             style={styles.quickReplyButton}
-            onClick={() => sendMessage(qr.value)}
+            onClick={() => sendMessage(btn.text)}
           >
-            {qr.label}
+            {btn.label}
           </button>
         ))}
       </div>
 
+      {/* Chat Box */}
       <div style={styles.chatBox}>
         {messages.map((msg, index) => (
           <div
@@ -106,6 +103,7 @@ export default function Home() {
         {loading && <div style={styles.loading}>Assistant is typing…</div>}
       </div>
 
+      {/* Input Field */}
       <div style={styles.inputContainer}>
         <textarea
           style={styles.input}
@@ -119,9 +117,10 @@ export default function Home() {
         </button>
       </div>
 
+      {/* Scoped link styles */}
       <style jsx>{`
         a {
-          color: inherit;
+          color: #007aff;
           text-decoration: underline;
           cursor: pointer;
           word-break: break-word;
@@ -148,21 +147,21 @@ const styles = {
     textAlign: "center",
     marginBottom: "10px",
   },
-  quickReplyContainer: {
+  quickReplies: {
     display: "flex",
-    justifyContent: "center",
-    gap: "10px",
-    marginBottom: "15px",
     flexWrap: "wrap",
+    gap: "10px",
+    justifyContent: "center",
+    marginBottom: "15px",
   },
   quickReplyButton: {
-    padding: "8px 14px",
     backgroundColor: "#007aff",
     color: "white",
     border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
+    borderRadius: "8px",
+    padding: "8px 12px",
     fontSize: "14px",
+    cursor: "pointer",
   },
   chatBox: {
     flex: 1,
